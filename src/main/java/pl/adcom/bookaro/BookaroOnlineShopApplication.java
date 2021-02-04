@@ -3,26 +3,17 @@ package pl.adcom.bookaro;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import pl.adcom.bookaro.catalog.application.CatalogController;
+import pl.adcom.bookaro.domain.Book;
+import pl.adcom.bookaro.domain.CatalogService;
 
 import java.util.List;
 
 @SpringBootApplication
-public class BookaroOnlineShopApplication implements CommandLineRunner {
+public class BookaroOnlineShopApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(BookaroOnlineShopApplication.class, args);
 	}
 
-	private final CatalogService catalogService;
-
-	public BookaroOnlineShopApplication(CatalogService catalogService) {
-		this.catalogService = catalogService;
-	}
-
-	@Override
-	public void run(String... args) throws Exception {
-//		CatalogService service = new CatalogService();
-		List<Book> books = catalogService.findByTitle("Pan Tadeusz");
-		System.out.println(books);
-	}
 }

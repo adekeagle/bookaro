@@ -24,7 +24,6 @@ public class CatalogService {
     }
 
 
-//    @Autowired
 //    public CatalogService(CatalogRepository repository){
 //        this.repository = repository;
 ////        storage.put(1L, new Book(1L, "Pan Tadeusz", "Adam Mickiewicz", 1876));

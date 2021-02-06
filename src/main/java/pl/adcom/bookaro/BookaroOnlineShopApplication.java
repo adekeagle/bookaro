@@ -17,9 +17,9 @@ public class BookaroOnlineShopApplication {
 		SpringApplication.run(BookaroOnlineShopApplication.class, args);
 	}
 
-	@Bean
-	String query(){
-		return "Pan";
-	}
+//	@Bean
+//	String query(){
+//		return "Pan Tadeusz";
+//	}
 
 }

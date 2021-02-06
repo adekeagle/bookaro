@@ -19,7 +19,7 @@ public class CatalogService {
     private final CatalogRepository repository;
 //    private final Map<Long, Book> storage = new ConcurrentHashMap<>();
 
-    public CatalogService(@Qualifier("schoolCatalogRepository") CatalogRepository repository) {
+    public CatalogService(@Qualifier("bestsellerCatalogRepository") CatalogRepository repository) {
         this.repository = repository;
     }
 
@@ -36,6 +36,13 @@ public class CatalogService {
         return repository.findAll()
                 .stream()
                 .filter(book -> book.getTitle().contains(title))
+                .collect(Collectors.toList());
+    }
+
+    public List<Book> findByAuthor(String author){
+        return repository.findByAuthor()
+                .stream()
+                .filter(a -> a.getAuthor().contains(author))
                 .collect(Collectors.toList());
     }
 }

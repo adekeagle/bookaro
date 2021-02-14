@@ -5,9 +5,13 @@ import org.springframework.stereotype.Service;
 import pl.adcom.bookaro.catalog.application.port.CatalogUseCase;
 import pl.adcom.bookaro.catalog.domain.Book;
 import pl.adcom.bookaro.catalog.domain.CatalogRepository;
+import pl.adcom.bookaro.uploads.application.ports.UploadUseCase;
+import pl.adcom.bookaro.uploads.application.ports.UploadUseCase.SaveUploadCommand;
+import pl.adcom.bookaro.uploads.domain.Upload;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -17,6 +21,7 @@ import java.util.stream.Collectors;
 class CatalogService implements CatalogUseCase {
 
     private final CatalogRepository repository;
+    private final UploadUseCase upload;
 //    private final Map<Long, Book> storage = new ConcurrentHashMap<>();
 
 //    public CatalogService(@Qualifier("memoryCatalogRepository") CatalogRepository repository) {
@@ -36,8 +41,13 @@ class CatalogService implements CatalogUseCase {
     public List<Book> findByTitle(String title) {
         return repository.findAll()
                 .stream()
-                .filter(book -> book.getTitle().contains(title))
+                .filter(book -> book.getTitle().toLowerCase().startsWith(title.toLowerCase()))
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public Optional<Book> findById(Long id) {
+        return repository.findById(id);
     }
 
     @Override
@@ -49,16 +59,34 @@ class CatalogService implements CatalogUseCase {
     }
 
     @Override
-    public List<Book> findByAuthor(String author) {
-        return repository.findByAuthor()
+    public Optional<Book> findByOneAuthor(String author) {
+        return repository
+                .findAll()
                 .stream()
-                .filter(a -> a.getAuthor().contains(author))
+                .filter(auth -> auth.getAuthor().contains(author))
+                .findFirst();
+    }
+
+    @Override
+    public List<Book> findByAuthor(String author) {
+        return repository.findAll()
+                .stream()
+                .filter(book -> book.getAuthor().toLowerCase().contains(author.toLowerCase()))
                 .collect(Collectors.toList());
     }
 
     @Override
     public List<Book> findAll() {
         return repository.findAll();
+    }
+
+    @Override
+    public List<Book> findByTitleAndAuthor(String title, String author) {
+        return repository.findAll()
+                .stream()
+                .filter(book -> book.getTitle().toLowerCase().contains(title.toLowerCase()))
+                .filter(book -> book.getAuthor().toLowerCase().contains(author.toLowerCase()))
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -71,10 +99,10 @@ class CatalogService implements CatalogUseCase {
     }
 
     @Override
-    public void addBook(CreateBookCommand command) {
+    public Book addBook(CreateBookCommand command) {
 //        Book book = new Book(command.getTitle(), command.getAuthor(), command.getYear(), command.getPrice());
         Book book = command.toBook();
-        repository.save(book);
+        return repository.save(book);
     }
 
     @Override
@@ -94,5 +122,29 @@ class CatalogService implements CatalogUseCase {
                     return UpdateBookResponse.SUCCESS;
                 })
                 .orElseGet(() -> new UpdateBookResponse(false, Arrays.asList("Book not found with id: " + command.getId())));
+    }
+
+    @Override
+    public void updateBookCover(UpdateBookCoverCommand command) {
+        int length = command.getFile().length;
+        System.out.println("Received cover command: " + command.getFilename() + " bytes " + length);
+        repository.findById(command.getId())
+                .ifPresent(book -> {
+                    Upload savedUpload = upload.save(new SaveUploadCommand(command.getFilename(), command.getFile(), command.getContentType()));
+                    book.setCoverId(savedUpload.getId());
+                    repository.save(book);
+                });
+    }
+
+    @Override
+    public void removeBookCover(Long id) {
+        repository.findById(id)
+                .ifPresent(book -> {
+                    if (book.getCoverId() != null) {
+                        upload.removeById(book.getCoverId());
+                        book.setCoverId(null);
+                        repository.save(book);
+                    }
+                });
     }
 }

@@ -17,7 +17,6 @@ import java.math.BigDecimal;
 import java.util.List;
 
 @Component
-//@RequiredArgsConstructor
 public class ApplicationStartup implements CommandLineRunner {
 
     private final CatalogUseCase catalog;
@@ -41,50 +40,41 @@ public class ApplicationStartup implements CommandLineRunner {
         this.author = author;
     }
 
-    //    public ApplicationStartup(CatalogController catalogController) {
-//        this.catalogController = catalogController;
-//    }
-
     @Override
     public void run(String... args) throws Exception {
 
         initData();
         searchCatalog();
         placeOrder();
-//        extracted();
-
 
     }
 
     private void placeOrder() {
-        //find pan tadeusz
-        Book panTadeusz = catalog.findOneByTitle("Pan").orElseThrow(() -> new IllegalStateException("Cannot find a book 1"));
+        Book wiedzmin = catalog.findOneByTitle("Wiedźmin Tom 1. Ostatnie życzenie").orElseThrow(() -> new IllegalStateException("Cannot find a book 1"));
 
-        //find chłopi
-        Book chopi = catalog.findOneByTitle("Chlopi").orElseThrow(() -> new IllegalStateException("Cannot find a book"));
+        Book chlopiZLasu = catalog.findOneByTitle("Chłopiec z lasu").orElseThrow(() -> new IllegalStateException("Cannot find a book"));
 
-        //create recipient
         Recipient recipient = Recipient
                 .builder()
-                .name("Jan Kowalski")
+                .name("Zbigniew Nowak")
                 .phone("111-111-111")
                 .street("Dolna 21")
                 .city("Gdańsk")
                 .zipCode("11-201")
-                .email("jan.kowalski@example.org")
+                .email("zbyszek@example.pl")
                 .build();
 
-        //place order command
         PlaceOrderCommand command = PlaceOrderCommand
                 .builder()
                 .recipient(recipient)
-                .item(new OrderItem(panTadeusz, 16))
-                .item(new OrderItem(chopi, 7))
+                .item(new OrderItem(wiedzmin, 16))
+                .item(new OrderItem(chlopiZLasu, 7))
                 .build();
 
         PlaceOrderUseCase.PlaceOrderResponse response = placeOrder.placeOrder(command);
         System.out.println("Created ORDER with id: " + response.getOrderId());
-        //list all orders
+
+
         queryOrder.findAll()
                 .forEach(order -> {
                     System.out.println("GOT ORDER WITH TOTAL PRICE: " + order.totalPrice() + " DETAILS " + order);
@@ -105,37 +95,29 @@ public class ApplicationStartup implements CommandLineRunner {
 
     private void findAndUpdate() {
         System.out.println("Updating book ....");
-        catalog.findOneByTitleAndAuthor("Pan Tadeusz", "Adam Mickiewicz")
+        catalog.findOneByTitleAndAuthor("Wiedźmin", "Andrzej Sapkowski")
                 .ifPresent(book -> {
                     UpdateBookCommand command = UpdateBookCommand.builder()
                                                             .id(book.getId())
-                                                            .title("Pan")
+                                                            .title("Wiedźmin Tom 1. Ostatnie życzenie")
                                                             .build();
 
-
-//                    UpdateBookCommand command = new UpdateBookCommand(
-//                            book.getId(),
-//                            "Harry Potter",
-//                            book.getAuthor(),
-//                            book.getYear()
-//                    );
                     CatalogUseCase.UpdateBookResponse response = catalog.updateBook(command);
                     System.out.println("Updating book result: " + response.isSuccess());
                 });
     }
 
     private void initData() {
-        catalog.addBook(new CreateBookCommand("Pan Tadeusz", "Adam Mickiewicz", 1998, new BigDecimal("19.90")));
-        catalog.addBook(new CreateBookCommand("Ogniem i Mieczem", "Henryk Sienkiewicz", 1998, new BigDecimal("29.90")));
-        catalog.addBook(new CreateBookCommand("Chlopi", "Władysław Reymont", 1954, new BigDecimal("11.90")));
-        catalog.addBook(new CreateBookCommand("Pan Wołodyjowski", "Henryk Sienkiewicz", 2005, new BigDecimal("14.90")));
+        catalog.addBook(new CreateBookCommand("Chłopiec z lasu", "Harlan Coben", 2020, new BigDecimal("27.29")));
+        catalog.addBook(new CreateBookCommand("Wiedźmin", "Andrzej Sapkowski", 1998, new BigDecimal("32.40")));
+        catalog.addBook(new CreateBookCommand("Folwark Zwierzęcy", "George Orwell", 1985, new BigDecimal("10.00")));
+        catalog.addBook(new CreateBookCommand("Obiecaj, że wrócisz", "Beata Majewska", 2020, new BigDecimal("25.90")));
     }
 
     private void extracted() {
-        //		CatalogService service = new CatalogService();
         List<Book> books = catalog.findByTitle(title);
-//        books.forEach(System.out::println);
         books.stream().limit(limit).forEach(System.out::println);
+
         List<Book> booksFindedByauthor = catalog.findByAuthor("Andrzej");
         booksFindedByauthor.stream().forEach(System.out::println);
     }

@@ -2,7 +2,6 @@ package pl.adcom.bookaro.order.domain;
 
 import lombok.Builder;
 import lombok.Data;
-import lombok.Value;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
